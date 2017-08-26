@@ -1,5 +1,4 @@
 from pynamodb.attributes import ListAttribute, NumberSetAttribute, UnicodeAttribute, UnicodeSetAttribute
-from pynamodb.compat import CompatTestCase as TestCase
 from pynamodb.expressions.condition import Path, size
 from pynamodb.expressions.projection import create_projection_expression
 from pynamodb.expressions.update import (
@@ -8,7 +7,10 @@ from pynamodb.expressions.update import (
 )
 
 
-class PathTestCase(TestCase):
+from pytest import raises
+
+
+class TestPath:
 
     def test_document_path(self):
         path = Path('foo.bar')
@@ -31,11 +33,11 @@ class PathTestCase(TestCase):
         assert repr(path) == "Path('foo.bar[0]', attribute_name=True)"
 
     def test_index_invalid(self):
-        with self.assertRaises(TypeError):
+        with raises(TypeError):
             Path('foo.bar')['foo']
 
 
-class ProjectionExpressionTestCase(TestCase):
+class TestProjectionExpression:
 
     def test_create_projection_expression(self):
         attributes_to_get = ['Description', 'RelatedItems[0]', 'ProductReviews.FiveStar']
@@ -54,7 +56,7 @@ class ProjectionExpressionTestCase(TestCase):
     def test_create_projection_expression_invalid_attribute_raises(self):
         invalid_attributes = ['', '[0]', 'foo[bar]', 'MyList[-1]', 'MyList[0.4]']
         for attribute in invalid_attributes:
-            with self.assertRaises(ValueError):
+            with raises(ValueError):
                 create_projection_expression([attribute], {})
 
     def test_create_project_expression_with_document_paths(self):
@@ -94,9 +96,9 @@ class ProjectionExpressionTestCase(TestCase):
         assert placeholders == {'Description': '#0'}
 
 
-class ConditionExpressionTestCase(TestCase):
+class TestConditionExpression:
 
-    def setUp(self):
+    def setup(self):
         self.attribute = UnicodeAttribute(attr_name='foo')
 
     def test_equal(self):
@@ -276,7 +278,7 @@ class ConditionExpressionTestCase(TestCase):
         assert expression_attribute_values == {':0': {'S' : 'bar'}}
 
     def test_invalid_indexing(self):
-        with self.assertRaises(TypeError):
+        with raises(TypeError):
             self.attribute[0]
 
     def test_double_indexing(self):
@@ -305,7 +307,7 @@ class ConditionExpressionTestCase(TestCase):
         assert expression_attribute_values == {':0': {'S': 'baz'}}
 
 
-class UpdateExpressionTestCase(TestCase):
+class TestUpdateExpression:
 
     def test_set_action(self):
         action = SetAction('foo', {'S': 'bar'})
@@ -324,7 +326,7 @@ class UpdateExpressionTestCase(TestCase):
         assert expression_attribute_values == {':0': {'N': '0'}}
 
     def test_increment_action_non_numeric(self):
-        with self.assertRaises(ValueError):
+        with raises(ValueError):
             IncrementAction('foo', {'S': '0'})
 
     def test_decrement_action(self):
@@ -336,7 +338,7 @@ class UpdateExpressionTestCase(TestCase):
         assert expression_attribute_values == {':0': {'N': '0'}}
 
     def test_decrement_action_non_numeric(self):
-        with self.assertRaises(ValueError):
+        with raises(ValueError):
             DecrementAction('foo', {'S': '0'})
 
     def test_append_action(self):
@@ -348,7 +350,7 @@ class UpdateExpressionTestCase(TestCase):
         assert expression_attribute_values == {':0': {'L': [{'S': 'bar'}]}}
 
     def test_append_action_non_list(self):
-        with self.assertRaises(ValueError):
+        with raises(ValueError):
             AppendAction('foo', {'S': 'bar'})
 
     def test_prepend_action(self):
@@ -360,7 +362,7 @@ class UpdateExpressionTestCase(TestCase):
         assert expression_attribute_values == {':0': {'L': [{'S': 'bar'}]}}
 
     def test_prepend_action_non_list(self):
-        with self.assertRaises(ValueError):
+        with raises(ValueError):
             PrependAction('foo', {'S': 'bar'})
 
     def test_set_if_not_exists_action(self):
@@ -396,7 +398,7 @@ class UpdateExpressionTestCase(TestCase):
         assert expression_attribute_values == {':0': {'NS': ['0']}}
 
     def test_add_action_list(self):
-        with self.assertRaises(ValueError):
+        with raises(ValueError):
             AddAction('foo', {'L': [{'N': '0'}]})
 
     def test_delete_action(self):
@@ -408,7 +410,7 @@ class UpdateExpressionTestCase(TestCase):
         assert expression_attribute_values == {':0': {'NS': ['0']}}
 
     def test_add_action_non_set(self):
-        with self.assertRaises(ValueError):
+        with raises(ValueError):
             DeleteAction('foo', {'N': '0'})
 
     def test_update(self):
@@ -426,3 +428,8 @@ class UpdateExpressionTestCase(TestCase):
             ':1': {'N': '0'},
             ':2': {'NS': ['0']}
         }
+
+class TestUpdateExpressionContextManager:
+
+    def test_basic_context_manager(self):
+        pass
