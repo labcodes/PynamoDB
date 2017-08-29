@@ -122,12 +122,14 @@ class Attribute(object):
 class AttributePath(Path):
 
     def __init__(self, attribute):
-        super(AttributePath, self).__init__(attribute.attr_name, attribute_name=True)
+        super(AttributePath, self).__init__([attribute.attr_name])
         self.attribute = attribute
 
     def __getitem__(self, idx):
         if self.attribute.attr_type != LIST:  # only list elements support the list dereference operator
             raise TypeError("'{0}' object has no attribute __getitem__".format(self.attribute.__class__.__name__))
+        # The __getitem__ call returns a new Path instance, not an AttributePath instance.
+        # This is intended since the list element is not the same attribute as the list itself.
         return super(AttributePath, self).__getitem__(idx)
 
     def contains(self, item):
@@ -146,7 +148,7 @@ class AttributePath(Path):
             return self.attribute.serialize([value])[0]
         if self.attribute.attr_type == MAP and not isinstance(value, dict):
             # Map attributes assume the values to be serialized are maps.
-            return self.attribute.serialize({'': value})['']
+            return super(AttributePath, self)._serialize(value)
         return {ATTR_TYPE_MAP[self.attribute.attr_type]: self.attribute.serialize(value)}
 
 

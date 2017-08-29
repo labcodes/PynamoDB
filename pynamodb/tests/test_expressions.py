@@ -13,22 +13,22 @@ class PathTestCase(TestCase):
     def test_document_path(self):
         path = Path('foo.bar')
         assert str(path) == 'foo.bar'
-        assert repr(path) == "Path('foo.bar', attribute_name=False)"
+        assert repr(path) == "Path(['foo', 'bar'])"
 
     def test_attribute_name(self):
-        path = Path('foo.bar', attribute_name=True)
+        path = Path(['foo.bar'])
         assert str(path) == "'foo.bar'"
-        assert repr(path) == "Path('foo.bar', attribute_name=True)"
+        assert repr(path) == "Path(['foo.bar'])"
 
     def test_index_document_path(self):
         path = Path('foo.bar')[0]
         assert str(path) == 'foo.bar[0]'
-        assert repr(path) == "Path('foo.bar[0]', attribute_name=False)"
+        assert repr(path) == "Path(['foo', 'bar[0]'])"
 
     def test_index_attribute_name(self):
-        path = Path('foo.bar', attribute_name=True)[0]
+        path = Path(['foo.bar'])[0]
         assert str(path) == "'foo.bar'[0]"
-        assert repr(path) == "Path('foo.bar[0]', attribute_name=True)"
+        assert repr(path) == "Path(['foo.bar[0]'])"
 
     def test_index_invalid(self):
         with self.assertRaises(TypeError):
@@ -65,7 +65,7 @@ class ProjectionExpressionTestCase(TestCase):
         assert placeholders == {'foo': '#0', 'bar': '#1'}
 
     def test_create_project_expression_with_attribute_names(self):
-        attributes_to_get = [Path('foo.bar', attribute_name=True)[0]]
+        attributes_to_get = [Path(['foo.bar'])[0]]
         placeholders = {}
         projection_expression = create_projection_expression(attributes_to_get, placeholders)
         assert projection_expression == "#0[0]"
